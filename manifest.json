@@ -146,8 +146,7 @@
           "markitdown"
         ],
         "node_packages": [
-          "pptxgenjs",
-          "html2pptxgenjs"
+          "pptxgenjs"
         ],
         "system_binaries": [],
         "system_binaries_optional": [

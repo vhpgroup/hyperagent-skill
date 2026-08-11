@@ -1,7 +1,7 @@
 # Python dependencies for the Hyperagent document skills bundle.
 #   pip install -r requirements.txt
 #
-# Tested on Python 3.9. No version pins: these are all stable, wide-compatibility
+# Requires Python 3.10+. No version pins: these are all stable, wide-compatibility
 # libraries, and pinning would fight your existing environment. Pin them yourself
 # if you need reproducible builds.
 
