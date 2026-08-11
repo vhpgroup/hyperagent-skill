@@ -321,10 +321,15 @@ def check_docx_pptx(tmp):
         S = os.path.join(SKILLS, kind, "scripts")
         src = os.path.join(tmp, "sample." + kind)
 
-        # Cần một file mẫu. Dùng LibreOffice tạo từ file text là cách chắc nhất
-        # mà không phụ thuộc Node.
+        # Prefer pptxgenjs for PPTX. Converting plain text directly with
+        # LibreOffice can produce a 0x0 slide and a dangling theme reference.
         made = False
-        if soffice:
+        maker = None
+        if kind == "pptx" and _make_pptx_with_pptxgenjs(src, tmp):
+            made = True
+            maker = "pptxgenjs"
+
+        if not made and soffice:
             txt = os.path.join(tmp, "seed_%s.txt" % kind)
             with open(txt, "w") as fh:
                 fh.write("Hyperagent doctor smoke test\nDong thu hai\n")
@@ -335,13 +340,12 @@ def check_docx_pptx(tmp):
                            "--outdir", outdir, txt], timeout=180)
             cand = os.path.join(outdir, "seed_%s.%s" % (kind, kind))
             if rc == 0 and os.path.exists(cand):
-                shutil.copy(cand, src); made = True
+                shutil.copy(cand, src)
+                made = True
+                maker = "LibreOffice"
 
-        if not made and kind == "pptx" and _make_pptx_with_pptxgenjs(src, tmp):
-            made = True
-            record(kind, "tạo file mẫu bằng pptxgenjs", "ok")
-        elif made:
-            record(kind, "tạo file mẫu bằng LibreOffice", "ok")
+        if made:
+            record(kind, "tạo file mẫu bằng %s" % maker, "ok")
         elif kind == "docx":
             # Không có LibreOffice vẫn test được docx: tự dựng OOXML tối thiểu.
             try:
@@ -363,11 +367,13 @@ def check_docx_pptx(tmp):
         n = sum(len(f) for _, _, f in os.walk(unpacked))
         record(kind, "office/unpack.py", "ok", "%d file XML" % n)
 
+        skip_pack_validation = False
         rc, out = run([sys.executable, os.path.join(S, "office", "validate.py"), src])
         if rc == 0:
             record(kind, "office/validate.py", "ok",
                    (out.splitlines()[-1][:70] if out else ""))
         elif _KNOWN_PPTXGENJS_QUIRK in out:
+            skip_pack_validation = True
             record(kind, "office/validate.py", "warn",
                    "lỗi thứ tự notesMasterIdLst có sẵn trong output của pptxgenjs, "
                    "không phải do skill")
@@ -376,8 +382,11 @@ def check_docx_pptx(tmp):
                    (out.splitlines()[-1][:70] if out else ""))
 
         repacked = os.path.join(tmp, "repacked." + kind)
-        rc, out = run([sys.executable, os.path.join(S, "office", "pack.py"),
-                       unpacked, repacked, "--original", src])
+        pack_cmd = [sys.executable, os.path.join(S, "office", "pack.py"),
+                    unpacked, repacked, "--original", src]
+        if skip_pack_validation:
+            pack_cmd.extend(["--validate", "false"])
+        rc, out = run(pack_cmd)
         if rc == 0 and os.path.exists(repacked):
             try:
                 zipfile.ZipFile(repacked).testzip()
