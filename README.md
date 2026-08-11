@@ -1,6 +1,6 @@
 # Hyperagent Skills — bản dựng lại cho local
 
-Bảy skill dựng lại từ Hyperagent, đóng gói ở dạng **trung lập với harness**: không
+Tám skill dựng lại từ Hyperagent, đóng gói ở dạng **trung lập với harness**: không
 phụ thuộc Claude Code, không phụ thuộc Qwen, không phụ thuộc runtime nào của
 Hyperagent.
 
@@ -20,6 +20,7 @@ Hyperagent.
 | `research` | Search, Find Similar, Exa Answer/Research/Websets | Exa API (mặc định), hoặc DDG / SearXNG |
 | `browser` | 12 browser tool (Stagehand) | Playwright cục bộ, không cần key |
 | `interactive` | Webpages, Slides | HTML + server xem trước cục bộ |
+| `hsmt-analyzer` | Pipeline HSMT/TBMT Việt Nam | Browser + research + bóc DOCX/PDF + Excel 6-7 tab |
 
 **Đính chính một khẳng định trước đây trong repo này:** tôi từng viết rằng Exa
 Research và Websets "không phải endpoint riêng, chỉ là search + LLM tổng hợp".

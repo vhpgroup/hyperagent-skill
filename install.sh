@@ -86,9 +86,11 @@ fi
 echo
 echo "[4/4] Cài thư viện Node (chỉ cần cho việc TẠO MỚI docx/pptx)"
 NODE_MAJOR=0
+NODE_BIN_DIR=""
 if command -v node >/dev/null 2>&1; then
   NODE_MAJOR="$(node --version 2>/dev/null | sed 's/^v//' | cut -d. -f1)"
   NODE_MAJOR="${NODE_MAJOR:-0}"
+  NODE_BIN_DIR="$(dirname "$(command -v node)")"
 fi
 
 # Cạm bẫy riêng của Ubuntu 22.04: `apt install nodejs` cho Node 12.22.9,
@@ -115,11 +117,19 @@ else
 fi
 
 # ---------------------------------------------------------------- env.sh
+PATH_EXPORT=""
+if [ -n "$NODE_BIN_DIR" ]; then
+  PATH_EXPORT="export PATH=\"$NODE_BIN_DIR:\$PATH\""
+fi
 cat > env.sh <<EOF
 # source env.sh  — nạp môi trường cho bundle này
 export HYPERAGENT_SKILLS="$BUNDLE_DIR/skills"
+$PATH_EXPORT
 export NODE_PATH="$BUNDLE_DIR/node_modules\${NODE_PATH:+:\$NODE_PATH}"
 source "$BUNDLE_DIR/.venv/bin/activate"
+if [ -f "\${HOME}/.config/hyperagent/secrets.env" ]; then
+  source "\${HOME}/.config/hyperagent/secrets.env"
+fi
 EOF
 ok "đã ghi env.sh"
 

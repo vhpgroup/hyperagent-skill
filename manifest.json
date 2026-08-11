@@ -65,6 +65,32 @@
       "notes": "Edits raw OOXML via unpack/pack + XSD validation rather than python-docx. LibreOffice is only needed for .doc conversion and PDF export; pandoc only for markdown extraction with tracked changes."
     },
     {
+      "name": "hsmt-analyzer",
+      "description": "Phân tích hồ sơ mời thầu Việt Nam từ mã TBMT, liên kết muasamcong, hoặc DOCX/PDF: tải E-HSMT, bóc yêu cầu kỹ thuật thành JSON, truy vết và so khớp sản phẩm theo bằng chứng, rồi xuất báo cáo Excel 6-7 tab.",
+      "instructions": "SKILL.md",
+      "references": [],
+      "entrypoint_scripts": [
+        "scripts/hsmt_extract.py",
+        "scripts/hsmt_excel.py",
+        "scripts/edoc_download.py"
+      ],
+      "script_count": 3,
+      "requires": {
+        "python_packages": [
+          "python-docx",
+          "PyMuPDF",
+          "libarchive-c",
+          "openpyxl"
+        ],
+        "node_packages": [],
+        "system_binaries": [],
+        "system_binaries_optional": [],
+        "env_vars": []
+      },
+      "needs_vision_model": true,
+      "notes": "Browser và research xử lý tra cứu/tải nguồn; ba script chuyên dụng xử lý tải file e-HSMT, bóc DOCX và xuất Excel. PDF scan và kiểm chứng ký hiệu >=/<= cần vision hoặc OCR."
+    },
+    {
       "name": "interactive",
       "description": "Dùng skill này khi cần tạo sản phẩm trực quan bằng HTML — trang web, báo cáo, dashboard, landing page, hoặc slide deck. KHÔNG dùng cho tài liệu Word/PDF/Excel.",
       "instructions": "SKILL.md",

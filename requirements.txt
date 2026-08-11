@@ -36,5 +36,10 @@ ddgs                 # backend DuckDuckGo (không cần key)
 # --- browser ---
 playwright           # sau khi cài: python -m playwright install chromium
 
+# --- hsmt-analyzer ---
+python-docx          # đọc bảng yêu cầu kỹ thuật trong DOCX
+PyMuPDF              # trích text và render PDF dự phòng
+libarchive-c         # giải nén file đính kèm ZIP/RAR/7z
+
 # --- interactive ---
 # Chỉ dùng stdlib. Không cần gì thêm.
