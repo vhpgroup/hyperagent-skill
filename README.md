@@ -201,7 +201,8 @@ làm ổn.
 
 ### Đã test tới đâu
 
-Chạy thật trên Python 3.11.15, kết quả `doctor.py`: **26 đạt, 0 hỏng, 9 bỏ qua**.
+Chạy thật trên Python 3.11.15, kết quả `doctor.py`: **31 đạt, 0 hỏng, 1 cảnh báo,
+6 bỏ qua**. Cả bốn skill đều đã được chạy end-to-end.
 
 Đã xác minh bằng cách chạy:
 
@@ -213,20 +214,42 @@ Chạy thật trên Python 3.11.15, kết quả `doctor.py`: **26 đạt, 0 hỏ
 - **pdf** — reportlab tạo file → pypdf đọc → pdfplumber trích text → 
   `check_fillable_fields.py`, `extract_form_structure.py`, `convert_pdf_to_images.py`
   (render qua poppler) đều chạy đúng.
+- **pptx** — `pptxgenjs` sinh deck 2 slide → `unpack.py` (20 XML) → `pack.py` → roundtrip
+  giữ nguyên nội dung slide. `validate.py` báo một lỗi schema, xem mục dưới.
+- **Đường tạo mới bằng Node** — thư viện `docx` sinh file rồi cho qua `validate.py`:
+  `All validations PASSED!`.
 - Compile toàn bộ 51 script dưới Python 3.9 → đó là cách phát hiện ràng buộc 3.10+.
 - Đối chiếu hash thư viện `office/` giữa các skill; kiểm dangling reference trong
   `SKILL.md`.
 
-**Vẫn chưa test:**
+**Vẫn chưa test:** `recalc.py`, export PDF, đọc `.doc` (đều cần LibreOffice), pandoc,
+tesseract, và đường điền PDF form cần vision.
 
-- **Toàn bộ đường `pptx`.** File .pptx tối thiểu cần slideMaster + slideLayout + theme,
-  không dựng tay được như docx; môi trường test lại không có LibreOffice để sinh mẫu.
-  Đây là skill duy nhất chưa có bằng chứng chạy được. Chạy `doctor.py` trên máy bạn
-  (đã có LibreOffice) sẽ phủ nốt phần này.
-- `recalc.py`, export PDF, đọc `.doc` — đều cần LibreOffice.
-- Đường tạo mới docx/pptx bằng Node (`docx`, `pptxgenjs`) — registry npm bị chặn ở
-  môi trường test.
-- pandoc, tesseract.
+### Lỗi schema của pptxgenjs — biết trước để đỡ mất công
+
+Nếu bạn tạo deck bằng `pptxgenjs` rồi chạy `validate.py`, nó sẽ báo:
+
+```
+ppt/presentation.xml: Element 'notesMasterIdLst': This element is not expected.
+```
+
+**Đây là lỗi thượng nguồn của pptxgenjs, không phải của skill.** `pml.xsd` yêu cầu thứ tự
+`sldMasterIdLst → notesMasterIdLst → sldIdLst → sldSz`, còn pptxgenjs xuất
+`notesMasterIdLst` sau `sldIdLst`. Đã kiểm chứng: lỗi có sẵn trong file gốc pptxgenjs
+vừa sinh ra, và pipeline unpack/pack giữ nguyên thứ tự đó chứ không tạo thêm lỗi.
+PowerPoint vẫn mở file bình thường.
+
+Điều này quan trọng với agent: chạy `validate.py` trần trên file pptxgenjs sẽ ra `FAILED`
+và agent có thể sa vào vòng lặp "sửa lỗi" một thứ nó không gây ra. Cách tránh là luôn
+truyền `--original`:
+
+```bash
+python scripts/office/pack.py unpacked/ out.pptx --original input.pptx
+```
+
+Khi có `--original`, validator chỉ báo lỗi **mới phát sinh** so với file gốc, nên lỗi
+sẵn có được bỏ qua. Đã kiểm: `validate.py` trần thoát mã 1, còn `pack.py --original`
+thoát mã 0 trên cùng file đó.
 
 ### Một điểm về `validate.py`
 
