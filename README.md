@@ -1,6 +1,6 @@
 # Hyperagent Skills — bản dựng lại cho local
 
-Tám skill dựng lại từ Hyperagent, đóng gói ở dạng **trung lập với harness**: không
+Chín skill dựng lại từ Hyperagent, đóng gói ở dạng **trung lập với harness**: không
 phụ thuộc Claude Code, không phụ thuộc Qwen, không phụ thuộc runtime nào của
 Hyperagent.
 
@@ -21,6 +21,7 @@ Hyperagent.
 | `browser` | 12 browser tool (Stagehand) | Playwright cục bộ, không cần key |
 | `interactive` | Webpages, Slides | HTML + server xem trước cục bộ |
 | `hsmt-analyzer` | Pipeline HSMT/TBMT Việt Nam | Browser + research + bóc DOCX/PDF + Excel 6-7 tab |
+| `hsmt-engine` | Runtime HSMT bền vững | FastAPI + SQLite + LangGraph checkpoint + human review |
 
 **Đính chính một khẳng định trước đây trong repo này:** tôi từng viết rằng Exa
 Research và Websets "không phải endpoint riêng, chỉ là search + LLM tổng hợp".
@@ -314,3 +315,33 @@ thoát mã 0 trên cùng file đó.
 `office/validate.py` **cố ý chỉ hỗ trợ `.docx` và `.pptx`**. Đưa file `.xlsx` vào nó sẽ
 in `Validation not supported for file type .xlsx` và thoát mã 1. Đó là hành vi đúng,
 không phải lỗi — spreadsheet không có validator trong bộ này.
+
+## HSMT Product Matcher Engine
+
+Repo nay co them runtime ben vung cho agent HSMT, tach khoi cac skill cap thap:
+
+- FastAPI nhan DOCX/PDF, bearer authentication va upload limit.
+- SQLite luu job, event log va artifact index.
+- LangGraph checkpoint tung job, dung o buoc human review va resume de xuat Excel.
+- Exa tim ung vien; model OpenAI-compatible doi chieu thong so neu duoc cau hinh.
+- Khong co model van chay duoc, nhung moi ket qua se duoc danh dau `Can xac minh`.
+- OpenClaw goi API qua skill `hsmt-engine`.
+
+Cai va khoi dong user service:
+
+```bash
+bash scripts/install_hsmt_engine.sh
+curl http://127.0.0.1:8787/health
+```
+
+Secrets nam trong `~/.config/hyperagent/engine.env` va
+`~/.config/hyperagent/secrets.env`, khong commit vao Git. API mac dinh chi bind
+`127.0.0.1`; chi mo ra Internet qua HTTPS tunnel co auth khi can Hyperagent Cloud.
+
+Chay test:
+
+```bash
+source env.sh
+pip install -e '.[test]'
+pytest
+```

@@ -43,3 +43,11 @@ libarchive-c         # giải nén file đính kèm ZIP/RAR/7z
 
 # --- interactive ---
 # Chỉ dùng stdlib. Không cần gì thêm.
+
+# --- hsmt-engine runtime ---
+fastapi
+uvicorn[standard]
+python-multipart
+httpx
+langgraph
+langgraph-checkpoint-sqlite

@@ -1,6 +1,6 @@
 {
   "bundle": "hyperagent-skills",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "extracted": "2026-08-11",
   "source": "Hyperagent knowledge base",
   "format": "harness-neutral",
@@ -89,6 +89,30 @@
       },
       "needs_vision_model": true,
       "notes": "Browser và research xử lý tra cứu/tải nguồn; ba script chuyên dụng xử lý tải file e-HSMT, bóc DOCX và xuất Excel. PDF scan và kiểm chứng ký hiệu >=/<= cần vision hoặc OCR."
+    },
+    {
+      "name": "hsmt-engine",
+      "description": "Client skill for the durable HSMT Product Matcher API: submit files, follow progress, review results, and download the final Excel report.",
+      "instructions": "SKILL.md",
+      "references": [],
+      "entrypoint_scripts": [
+        "scripts/client.py"
+      ],
+      "script_count": 1,
+      "requires": {
+        "python_packages": [
+          "httpx"
+        ],
+        "node_packages": [],
+        "system_binaries": [],
+        "system_binaries_optional": [],
+        "env_vars": [
+          "HSMT_ENGINE_URL",
+          "HSMT_API_TOKEN"
+        ]
+      },
+      "needs_vision_model": false,
+      "notes": "Use this orchestration skill from OpenClaw. hsmt-analyzer remains the lower-level document-processing skill."
     },
     {
       "name": "interactive",
