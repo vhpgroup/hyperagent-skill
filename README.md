@@ -201,14 +201,35 @@ làm ổn.
 
 ### Đã test tới đâu
 
-Đã chạy thật, không phải chỉ đọc code:
+Chạy thật trên Python 3.11.15, kết quả `doctor.py`: **26 đạt, 0 hỏng, 9 bỏ qua**.
 
-- Compile toàn bộ 51 script → phát hiện yêu cầu Python 3.10+ nêu trên.
-- Verify cấu trúc: không có dangling reference trong `SKILL.md`, không có `__pycache__`,
-  đối chiếu hash thư viện `office/` giữa các skill.
-- E2E một phần trên `xlsx`: tạo file bằng openpyxl → `office/unpack.py` giải nén thành
-  công ra 9 file XML.
+Đã xác minh bằng cách chạy:
 
-**Chưa test:** `pack.py` và `validate.py` (container test chỉ có Python 3.9 nên không
-chạy được), toàn bộ đường docx/pptx, và mọi thứ cần LibreOffice, pandoc hay Node.
-Chạy thử trên máy có Python 3.10+ trước khi tin tưởng giao việc thật.
+- **xlsx** — tạo file bằng openpyxl → `unpack.py` (9 XML) → `pack.py` → đọc lại bằng
+  openpyxl, dữ liệu còn nguyên.
+- **docx** — dựng OOXML tối thiểu → `unpack.py` → `validate.py` chạy qua bộ 39 XSD,
+  báo `All validations PASSED!` → `pack.py` → validate lại → zip toàn vẹn, nội dung
+  không mất.
+- **pdf** — reportlab tạo file → pypdf đọc → pdfplumber trích text → 
+  `check_fillable_fields.py`, `extract_form_structure.py`, `convert_pdf_to_images.py`
+  (render qua poppler) đều chạy đúng.
+- Compile toàn bộ 51 script dưới Python 3.9 → đó là cách phát hiện ràng buộc 3.10+.
+- Đối chiếu hash thư viện `office/` giữa các skill; kiểm dangling reference trong
+  `SKILL.md`.
+
+**Vẫn chưa test:**
+
+- **Toàn bộ đường `pptx`.** File .pptx tối thiểu cần slideMaster + slideLayout + theme,
+  không dựng tay được như docx; môi trường test lại không có LibreOffice để sinh mẫu.
+  Đây là skill duy nhất chưa có bằng chứng chạy được. Chạy `doctor.py` trên máy bạn
+  (đã có LibreOffice) sẽ phủ nốt phần này.
+- `recalc.py`, export PDF, đọc `.doc` — đều cần LibreOffice.
+- Đường tạo mới docx/pptx bằng Node (`docx`, `pptxgenjs`) — registry npm bị chặn ở
+  môi trường test.
+- pandoc, tesseract.
+
+### Một điểm về `validate.py`
+
+`office/validate.py` **cố ý chỉ hỗ trợ `.docx` và `.pptx`**. Đưa file `.xlsx` vào nó sẽ
+in `Validation not supported for file type .xlsx` và thoát mã 1. Đó là hành vi đúng,
+không phải lỗi — spreadsheet không có validator trong bộ này.

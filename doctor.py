@@ -154,9 +154,11 @@ def check_xlsx(tmp):
         record("xlsx", "office/unpack.py", "fail", out.splitlines()[-1][:70] if out else "")
         return
 
-    rc, out = run([sys.executable, os.path.join(S, "office", "validate.py"), src])
-    record("xlsx", "office/validate.py", "ok" if rc == 0 else "fail",
-           (out.splitlines()[-1][:70] if out else ""))
+    # validate.py CỐ Ý chỉ hỗ trợ .docx và .pptx (xem match/case trong
+    # office/validate.py). Với .xlsx nó thoát mã 1 — đó là hành vi đúng,
+    # không phải lỗi.
+    record("xlsx", "office/validate.py", "skip",
+           "không áp dụng — validate chỉ hỗ trợ docx/pptx")
 
     repacked = os.path.join(tmp, "repacked.xlsx")
     rc, out = run([sys.executable, os.path.join(S, "office", "pack.py"),
@@ -239,6 +241,35 @@ def check_pdf(tmp):
                out.splitlines()[-1][:60] if out else "không tạo được ảnh")
 
 
+# .docx tối thiểu nhưng hợp lệ — dùng làm mẫu khi máy không có LibreOffice.
+# Chỉ 3 part là đủ để Word mở được và để DOCXSchemaValidator chạy thật.
+_MIN_DOCX = {
+    "[Content_Types].xml": """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>""",
+    "_rels/.rels": """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>""",
+    "word/document.xml": """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:body>
+<w:p><w:r><w:t>Hyperagent doctor smoke test</w:t></w:r></w:p>
+<w:sectPr><w:pgSz w:w="12240" w:h="15840"/></w:sectPr>
+</w:body>
+</w:document>""",
+}
+
+
+def _write_min_docx(path):
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+        for name, body in _MIN_DOCX.items():
+            z.writestr(name, body)
+
+
 def check_docx_pptx(tmp):
     head("5. docx / pptx — giải nén, validate, đóng gói lại")
     soffice = shutil.which("soffice") or shutil.which("libreoffice")
@@ -263,11 +294,20 @@ def check_docx_pptx(tmp):
             if rc == 0 and os.path.exists(cand):
                 shutil.copy(cand, src); made = True
 
+        if made:
+            record(kind, "tạo file mẫu bằng LibreOffice", "ok")
+        elif kind == "docx":
+            # Không có LibreOffice vẫn test được docx: tự dựng OOXML tối thiểu.
+            try:
+                _write_min_docx(src)
+                made = True
+                record(kind, "tạo file mẫu (OOXML tối thiểu, không cần LibreOffice)", "ok")
+            except Exception as e:
+                record(kind, "tạo file mẫu", "fail", str(e)[:60])
         if not made:
             record(kind, "tạo file mẫu", "skip",
-                   "cần LibreOffice để sinh file mẫu — bỏ qua nhóm test này")
+                   "cần LibreOffice để sinh file .pptx mẫu — bỏ qua nhóm test này")
             continue
-        record(kind, "tạo file mẫu bằng LibreOffice", "ok")
 
         unpacked = os.path.join(tmp, kind + "_unpacked")
         rc, out = run([sys.executable, os.path.join(S, "office", "unpack.py"), src, unpacked])
