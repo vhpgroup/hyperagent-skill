@@ -410,6 +410,80 @@ def check_docx_pptx(tmp):
                                out.splitlines()[-1][:70] if out else "")
 
 
+# ══════════════════════════════════════════════════ 6. research / browser / interactive
+def check_tool_skills(tmp):
+    head("6. research / browser / interactive")
+
+    # ---- research ----
+    R = os.path.join(SKILLS, "research", "scripts")
+    rc, out = run([sys.executable, os.path.join(R, "fetch.py"),
+                   "https://example.com", "--max-chars", "300"], timeout=90)
+    if rc == 0 and "Example" in out:
+        how = next((l for l in out.splitlines() if l.startswith("Bóc bằng")), "")
+        record("research", "fetch.py trên trang thật", "ok", how[:50])
+    else:
+        record("research", "fetch.py trên trang thật", "warn",
+               "không tải được — kiểm tra mạng/proxy")
+
+    if os.environ.get("EXA_API_KEY"):
+        rc, out = run([sys.executable, os.path.join(R, "search.py"),
+                       "test query", "-n", "2"], timeout=90)
+        record("research", "search.py backend exa", "ok" if rc == 0 else "fail",
+               (out.splitlines()[0][:60] if out else ""))
+    else:
+        record("research", "search.py backend exa", "skip",
+               "chưa đặt EXA_API_KEY — backend mặc định sẽ báo lỗi")
+        rc, out = run([sys.executable, os.path.join(R, "search.py"),
+                       "python zipfile", "--backend", "ddg", "-n", "2"], timeout=120)
+        record("research", "search.py fallback ddg", "ok" if rc == 0 else "warn",
+               "" if rc == 0 else "ddg hay bị rate-limit, không phải lỗi code")
+
+    # ---- browser ----
+    B = os.path.join(SKILLS, "browser", "scripts", "browse.py")
+    try:
+        import playwright  # noqa: F401
+        has_pw = True
+    except ImportError:
+        has_pw = False
+    if not has_pw:
+        record("browser", "Playwright", "skip",
+               "chưa cài: pip install playwright && python -m playwright install chromium")
+    else:
+        rc, out = run([sys.executable, B, "get", "https://example.com"], timeout=180)
+        if rc == 0 and "Example" in out:
+            record("browser", "browse.py get (Chromium thật)", "ok")
+        else:
+            record("browser", "browse.py get", "fail",
+                   (out.splitlines()[-1][:70] if out else ""))
+        shot = os.path.join(tmp, "shot.png")
+        rc, out = run([sys.executable, B, "shot", "https://example.com", "-o", shot],
+                      timeout=180)
+        record("browser", "browse.py shot", "ok" if os.path.exists(shot) else "fail",
+               (out.splitlines()[-1][:60] if out else ""))
+
+    # ---- interactive ----
+    I = os.path.join(SKILLS, "interactive", "scripts")
+    md = os.path.join(tmp, "deck.md")
+    with open(md, "w", encoding="utf-8") as fh:
+        fh.write("# Slide một\n\n- điểm a\n- điểm b\n\n---\n\n# Slide hai\n\nNội dung.\n")
+    deck = os.path.join(tmp, "deck.html")
+    rc, out = run([sys.executable, os.path.join(I, "new_deck.py"), md, "-o", deck],
+                  timeout=60)
+    if rc == 0 and os.path.exists(deck):
+        body = open(deck, encoding="utf-8").read()
+        needed = ["ArrowRight", "touchstart", "close-fullscreen", "navigate"]
+        miss = [k for k in needed if k not in body]
+        record("interactive", "new_deck.py", "ok" if not miss else "fail",
+               "đủ điều hướng" if not miss else "thiếu: " + ", ".join(miss))
+    else:
+        record("interactive", "new_deck.py", "fail",
+               (out.splitlines()[-1][:70] if out else ""))
+    rc, out = run([sys.executable, "-c",
+                   "import ast,sys; ast.parse(open(sys.argv[1],encoding='utf-8').read())",
+                   os.path.join(I, "preview.py")], timeout=30)
+    record("interactive", "preview.py", "ok" if rc == 0 else "fail")
+
+
 # ══════════════════════════════════════════════════ tổng kết
 def summary():
     head("Tổng kết")
@@ -452,6 +526,7 @@ def main():
         check_xlsx(tmp)
         check_pdf(tmp)
         check_docx_pptx(tmp)
+        check_tool_skills(tmp)
         return summary()
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

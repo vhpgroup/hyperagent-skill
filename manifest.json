@@ -1,5 +1,5 @@
 {
-  "bundle": "hyperagent-document-skills",
+  "bundle": "hyperagent-skills",
   "version": "1.0.0",
   "extracted": "2026-08-11",
   "source": "Hyperagent knowledge base",
@@ -8,6 +8,33 @@
   "python_version_required": "3.10+",
   "python_version_note": "Hard requirement, not a suggestion. office/validate.py uses match/case statements and office/pack.py plus docx/scripts/comment.py use PEP 604 'X | None' annotations. All of these are syntax errors on Python 3.9. Verified by compiling all 51 scripts under 3.9: validate.py fails in each of docx, xlsx and pptx.",
   "skills": [
+    {
+      "name": "browser",
+      "description": "Dùng skill này khi cần một trình duyệt thật — trang render bằng JavaScript, trang cần đăng nhập, điền form, bấm nút, cuộn tải thêm, chụp màn hình, hoặc khi fetch trả về rỗng/403. KHÔNG dùng cho trang tĩnh — skill research nhanh và rẻ hơn.",
+      "instructions": "SKILL.md",
+      "references": [],
+      "entrypoint_scripts": [
+        "scripts/browse.py"
+      ],
+      "script_count": 1,
+      "requires": {
+        "python_packages": [
+          "playwright"
+        ],
+        "node_packages": [],
+        "system_binaries": [
+          "chromium (qua: python -m playwright install chromium)"
+        ],
+        "system_binaries_optional": [
+          "xvfb (để chạy --headed trên server không màn hình)"
+        ],
+        "env_vars": [
+          "BROWSER_PROFILE (thư mục giữ cookie, mặc định ~/.cache/agent-browser)"
+        ]
+      },
+      "needs_vision_model": false,
+      "notes": "Thay 12 browser tool của Hyperagent bằng Playwright cục bộ, không cần key. Khác Stagehand ở chỗ không nhận lệnh ngôn ngữ tự nhiên: quy trình là observe để lấy selector rồi mới thao tác. Giữ đăng nhập qua user-data-dir cố định thay vì nuôi daemon."
+    },
     {
       "name": "docx",
       "description": "Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx files). Triggers include: any mention of 'Word doc', 'word document', '.docx', or requests to produce professional documents with formatting like tables of contents, headings, page numbers, or letterheads. Also use when extracting or reorganizing content from .docx files, inserting or replacing images in documents, performing find-and-replace in Word files, working with tracked changes or comments, or converting content into a polished Word document. If the user asks for a 'report', 'memo', 'letter', 'template', or similar deliverable as a Word or .docx file, use this skill. Do NOT use for PDFs, spreadsheets, Google Docs, or general coding tasks unrelated to document generation.",
@@ -36,6 +63,26 @@
       },
       "needs_vision_model": false,
       "notes": "Edits raw OOXML via unpack/pack + XSD validation rather than python-docx. LibreOffice is only needed for .doc conversion and PDF export; pandoc only for markdown extraction with tracked changes."
+    },
+    {
+      "name": "interactive",
+      "description": "Dùng skill này khi cần tạo sản phẩm trực quan bằng HTML — trang web, báo cáo, dashboard, landing page, hoặc slide deck. KHÔNG dùng cho tài liệu Word/PDF/Excel.",
+      "instructions": "SKILL.md",
+      "references": [],
+      "entrypoint_scripts": [
+        "scripts/new_deck.py",
+        "scripts/preview.py"
+      ],
+      "script_count": 2,
+      "requires": {
+        "python_packages": [],
+        "node_packages": [],
+        "system_binaries": [],
+        "system_binaries_optional": [],
+        "env_vars": []
+      },
+      "needs_vision_model": false,
+      "notes": "Thay Webpages và Slides. Chỉ dùng stdlib. Giá trị chính nằm ở phần định hướng thiết kế trong SKILL.md, không nằm ở script — new_deck.py chỉ lo phần điều hướng slide (phím, chấm, bộ đếm, vuốt), thẩm mỹ phải tự sửa cho hợp nội dung. HyperApps KHÔNG port được: nó cần runtime giữ phiên agent sống và cầu RPC từ iframe."
     },
     {
       "name": "pdf",
@@ -99,7 +146,8 @@
           "markitdown"
         ],
         "node_packages": [
-          "pptxgenjs"
+          "pptxgenjs",
+          "html2pptxgenjs"
         ],
         "system_binaries": [],
         "system_binaries_optional": [
@@ -109,6 +157,36 @@
       },
       "needs_vision_model": false,
       "notes": "Creating new decks uses the PptxGenJS Node library; reading and editing existing decks uses the Python OOXML pipeline. LibreOffice only for PDF export. scripts/thumbnail.py is a RECONSTRUCTION: the upstream skill record was missing it even though the docs invoke it as step 1 of the editing workflow. It renders slides to a numbered thumbnails.jpg grid via LibreOffice + poppler + Pillow, and also accepts a .pdf directly."
+    },
+    {
+      "name": "research",
+      "description": "Dùng skill này khi cần tìm thông tin trên web — tra cứu sự kiện, nghiên cứu chủ đề, thu thập nguồn, tìm bài viết/công ty/paper tương tự, hoặc trả lời câu hỏi cần dẫn nguồn. KHÔNG dùng cho trang cần đăng nhập hoặc render bằng JavaScript — chuyển sang skill browser.",
+      "instructions": "SKILL.md",
+      "references": [],
+      "entrypoint_scripts": [
+        "scripts/search.py",
+        "scripts/fetch.py",
+        "scripts/exa_tools.py"
+      ],
+      "script_count": 3,
+      "requires": {
+        "python_packages": [
+          "trafilatura",
+          "readability-lxml",
+          "ddgs",
+          "pdfplumber"
+        ],
+        "node_packages": [],
+        "system_binaries": [],
+        "system_binaries_optional": [],
+        "env_vars": [
+          "EXA_API_KEY (backend mặc định)",
+          "RESEARCH_BACKEND (exa|ddg|searxng)",
+          "SEARXNG_URL (nếu dùng searxng)"
+        ]
+      },
+      "needs_vision_model": false,
+      "notes": "Thay nhóm RESEARCH của Hyperagent. Exa Answer/Research/Websets không phải endpoint riêng — chúng là search + LLM tổng hợp, nên được viết thành quy trình trong SKILL.md thay vì script. Backend cắm rời qua RESEARCH_BACKEND."
     },
     {
       "name": "xlsx",
@@ -141,5 +219,10 @@
       "path": "skills/pptx/scripts/thumbnail.py",
       "reason": "Referenced by pptx SKILL.md and references/editing.md but absent from the upstream skill record; re-fetched twice with force to confirm. Rebuilt to match the documented behaviour."
     }
-  ]
+  ],
+  "not_portable": {
+    "HyperApps": "Cần runtime giữ phiên agent sống + cầu RPC từ iframe về server.",
+    "Thread Search": "Cần lớp lưu hội thoại của platform; ở local phải tự index transcript của harness.",
+    "Tables / Documents": "Chưa làm — cần một lớp lưu trữ (SQLite + thư mục markdown là đủ)."
+  }
 }

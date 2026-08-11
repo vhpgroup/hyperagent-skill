@@ -1,7 +1,7 @@
 # Python dependencies for the Hyperagent document skills bundle.
 #   pip install -r requirements.txt
 #
-# Requires Python 3.10+. No version pins: these are all stable, wide-compatibility
+# Tested on Python 3.9. No version pins: these are all stable, wide-compatibility
 # libraries, and pinning would fight your existing environment. Pin them yourself
 # if you need reproducible builds.
 
@@ -26,3 +26,15 @@ markitdown            # Office -> markdown
 
 # --- optional, only if you want OCR on scanned PDFs ---
 # pytesseract         # also requires the tesseract binary
+
+# --- research ---
+trafilatura          # bóc nội dung chính khỏi HTML, tốt nhất cho bài viết
+readability-lxml     # dự phòng khi trafilatura không ăn
+ddgs                 # backend DuckDuckGo (không cần key)
+# Exa dùng urllib của stdlib, không cần thư viện riêng
+
+# --- browser ---
+playwright           # sau khi cài: python -m playwright install chromium
+
+# --- interactive ---
+# Chỉ dùng stdlib. Không cần gì thêm.

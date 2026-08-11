@@ -1,8 +1,10 @@
-# Hyperagent Document Skills — bản trích cho local
+# Hyperagent Skills — bản dựng lại cho local
 
-Bốn skill xử lý tài liệu, trích từ knowledge base của Hyperagent, đóng gói ở dạng
-**trung lập với harness**: không phụ thuộc Claude Code, không phụ thuộc Qwen, không
-phụ thuộc runtime nào của Hyperagent.
+Bảy skill dựng lại từ Hyperagent, đóng gói ở dạng **trung lập với harness**: không
+phụ thuộc Claude Code, không phụ thuộc Qwen, không phụ thuộc runtime nào của
+Hyperagent.
+
+**Nhóm tài liệu** — trích nguyên từ knowledge base:
 
 | Skill  | Làm được gì | Cách hoạt động |
 |--------|-------------|----------------|
@@ -10,6 +12,23 @@ phụ thuộc runtime nào của Hyperagent.
 | `docx` | Tạo, đọc, sửa Word; tracked changes, comments, redlining | Sửa OOXML thô + validate bằng XSD |
 | `xlsx` | Tạo, đọc, sửa, làm sạch spreadsheet; công thức, biểu đồ | openpyxl + pandas |
 | `pptx` | Tạo, đọc, sửa slide deck; layout, speaker notes | PptxGenJS (tạo mới) + OOXML (sửa) |
+
+**Nhóm tool** — viết mới, thay cho các tool chạy phía server của Hyperagent:
+
+| Skill | Thay cho | Cách hoạt động |
+|---|---|---|
+| `research` | Search, Find Similar, Exa Answer/Research/Websets | Exa API (mặc định), hoặc DDG / SearXNG |
+| `browser` | 12 browser tool (Stagehand) | Playwright cục bộ, không cần key |
+| `interactive` | Webpages, Slides | HTML + server xem trước cục bộ |
+
+Một nhận xét đáng lưu ý: **6 tool trong nhóm RESEARCH chỉ dựa trên 2 primitive.**
+Exa Answer, Exa Research, Exa Websets không phải endpoint riêng — chúng là
+search + LLM tổng hợp. Mà LLM thì bạn đã có. Nên chúng được viết thành *quy trình*
+trong SKILL.md, không phải script.
+
+**Không dựng lại được:** HyperApps (cần runtime giữ phiên agent + cầu RPC từ
+iframe), Thread Search (cần lớp lưu hội thoại của platform). Tables và Documents
+thì chưa làm.
 
 ---
 
