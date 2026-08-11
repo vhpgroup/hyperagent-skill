@@ -68,6 +68,7 @@ def check_python():
     optional = {"pdf2image": "render PDF ra ảnh",
                 "reportlab": "tạo PDF từ đầu",
                 "pandas": "phân tích bảng",
+                "markitdown": "trích Office sang markdown (python -m markitdown)",
                 "pytesseract": "OCR"}
     import importlib
     for m in required:
@@ -104,6 +105,12 @@ def check_binaries():
     else:
         record("bin", "LibreOffice", "skip",
                "tuỳ chọn — mất: recalc công thức Excel, export PDF, đọc .doc")
+
+    if shutil.which("magick") or shutil.which("convert"):
+        record("bin", "ImageMagick", "ok")
+    else:
+        record("bin", "ImageMagick", "skip",
+               "tuỳ chọn — mất: bước crop zoom khi điền PDF form (forms.md)")
 
     for name, why in (("pandoc", "trích docx sang markdown kèm tracked changes"),
                       ("tesseract", "OCR PDF scan")):
@@ -379,6 +386,28 @@ def check_docx_pptx(tmp):
                 record(kind, "office/pack.py + roundtrip", "fail", str(e)[:60])
         else:
             record(kind, "office/pack.py", "fail", out.splitlines()[-1][:70] if out else "")
+
+        # thumbnail.py: cần LibreOffice cho .pptx, nhưng nhận thẳng .pdf được,
+        # nên vẫn test được phần ghép lưới khi máy không có LibreOffice.
+        if kind == "pptx":
+            thumb = os.path.join(S, "thumbnail.py")
+            if not os.path.isfile(thumb):
+                record(kind, "thumbnail.py", "fail", "thiếu file")
+            else:
+                target = src if soffice else os.path.join(tmp, "test.pdf")
+                if not os.path.exists(target):
+                    record(kind, "thumbnail.py", "skip", "không có file đầu vào")
+                else:
+                    outjpg = os.path.join(tmp, "thumbnails.jpg")
+                    rc, out = run([sys.executable, thumb, target, "-o", outjpg],
+                                  timeout=300)
+                    if rc == 0 and os.path.exists(outjpg):
+                        record(kind, "thumbnail.py", "ok",
+                               (out.splitlines()[-1][:60] if out else "") +
+                               ("" if soffice else " (qua .pdf, không có LibreOffice)"))
+                    else:
+                        record(kind, "thumbnail.py", "fail",
+                               out.splitlines()[-1][:70] if out else "")
 
 
 # ══════════════════════════════════════════════════ tổng kết

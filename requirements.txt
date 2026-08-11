@@ -20,5 +20,9 @@ defusedxml            # hardened XML parsing
 openpyxl              # read/write .xlsx
 pandas                # tabular analysis (used throughout the xlsx docs)
 
+# --- trích text từ Office sang markdown ---
+# Tài liệu docx/pptx gọi `python -m markitdown <file>` ở bước đọc nội dung.
+markitdown            # Office -> markdown
+
 # --- optional, only if you want OCR on scanned PDFs ---
 # pytesseract         # also requires the tesseract binary

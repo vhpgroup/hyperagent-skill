@@ -22,7 +22,8 @@
       "requires": {
         "python_packages": [
           "lxml",
-          "defusedxml"
+          "defusedxml",
+          "markitdown"
         ],
         "node_packages": [
           "docx"
@@ -67,11 +68,12 @@
           "poppler-utils"
         ],
         "system_binaries_optional": [
-          "tesseract-ocr"
+          "tesseract-ocr",
+          "imagemagick"
         ]
       },
       "needs_vision_model": true,
-      "notes": "Filling non-fillable forms requires a vision-capable model: the workflow renders pages to PNG and estimates field coordinates visually. Text-only models cannot complete that path. Reading, merging, splitting and table extraction need no vision."
+      "notes": "Filling non-fillable forms requires a vision-capable model: the workflow renders pages to PNG and estimates field coordinates visually. Text-only models cannot complete that path. Reading, merging, splitting and table extraction need no vision. The zoom-refinement step in references/forms.md shells out to ImageMagick (`magick ... -crop`)."
     },
     {
       "name": "pptx",
@@ -84,13 +86,17 @@
       "entrypoint_scripts": [
         "scripts/__init__.py",
         "scripts/add_slide.py",
-        "scripts/clean.py"
+        "scripts/clean.py",
+        "scripts/thumbnail.py"
       ],
-      "script_count": 15,
+      "script_count": 16,
       "requires": {
         "python_packages": [
           "defusedxml",
-          "lxml"
+          "lxml",
+          "Pillow",
+          "pdf2image",
+          "markitdown"
         ],
         "node_packages": [
           "pptxgenjs",
@@ -98,11 +104,12 @@
         ],
         "system_binaries": [],
         "system_binaries_optional": [
-          "libreoffice"
+          "libreoffice",
+          "poppler-utils"
         ]
       },
       "needs_vision_model": false,
-      "notes": "Creating new decks uses the PptxGenJS Node library; reading and editing existing decks uses the Python OOXML pipeline. LibreOffice only for PDF export."
+      "notes": "Creating new decks uses the PptxGenJS Node library; reading and editing existing decks uses the Python OOXML pipeline. LibreOffice only for PDF export. scripts/thumbnail.py is a RECONSTRUCTION: the upstream skill record was missing it even though the docs invoke it as step 1 of the editing workflow. It renders slides to a numbered thumbnails.jpg grid via LibreOffice + poppler + Pillow, and also accepts a .pdf directly."
     },
     {
       "name": "xlsx",
@@ -128,6 +135,12 @@
       },
       "needs_vision_model": false,
       "notes": "LibreOffice is required only by scripts/recalc.py, which recalculates formula values after openpyxl writes them. Everything else works without it."
+    }
+  ],
+  "reconstructed_files": [
+    {
+      "path": "skills/pptx/scripts/thumbnail.py",
+      "reason": "Referenced by pptx SKILL.md and references/editing.md but absent from the upstream skill record; re-fetched twice with force to confirm. Rebuilt to match the documented behaviour."
     }
   ]
 }

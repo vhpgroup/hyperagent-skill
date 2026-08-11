@@ -99,19 +99,20 @@ README này ghi rõ bỏ đi thì mất gì.
 | **poppler** | Nên có | `pdf2image` không chạy → mất render PDF ra ảnh, kéo theo mất luôn phần điền form không-fillable. Rất nhẹ, vài MB. |
 | **Node.js + npm** | Nên có nếu dùng docx/pptx | Mất đường tạo docx/pptx **mới từ đầu**. Vẫn đọc/sửa file có sẵn bình thường. |
 | **LibreOffice** | Tuỳ chọn | Mất 3 thứ: recalc công thức Excel (`xlsx/scripts/recalc.py`), convert Office → PDF, convert `.doc` cũ → `.docx`. Nặng ~600 MB–1 GB. Nếu bạn không đụng file Excel có công thức thì bỏ qua được. |
+| **ImageMagick** | Tuỳ chọn | `pdf/references/forms.md` dùng `magick ... -crop` để phóng to vùng ảnh khi tinh chỉnh toạ độ ô điền form. Không có thì bước zoom refinement phải làm cách khác. |
 | **pandoc** | Tuỳ chọn | Mất đường trích docx → markdown kèm tracked changes. |
 | **tesseract** | Tuỳ chọn | Mất OCR PDF scan. |
 
 ```bash
 # macOS
 brew install poppler node
-brew install --cask libreoffice          # tuỳ chọn
-brew install pandoc tesseract            # tuỳ chọn
+brew install --cask libreoffice              # tuỳ chọn
+brew install pandoc tesseract imagemagick    # tuỳ chọn
 
 # Ubuntu / Debian
 sudo apt install poppler-utils nodejs npm
-sudo apt install libreoffice             # tuỳ chọn
-sudo apt install pandoc tesseract-ocr    # tuỳ chọn
+sudo apt install libreoffice                        # tuỳ chọn
+sudo apt install pandoc tesseract-ocr imagemagick   # tuỳ chọn
 
 # Windows
 winget install oschwartz10612.Poppler OpenJS.NodeJS
@@ -192,6 +193,14 @@ làm ổn.
   `soffice.py`, `validate.py`, thư mục `validators/` và 4 file XSD — dù `SKILL.md` của
   nó có gọi `unpack.py`. Các file thiếu đã được copy từ `docx` (đã đối chiếu hash, giống
   hệt). Nếu `pptx` chạy lỗi ở bước unpack/validate thì đây là chỗ đầu tiên nên nghi.
+- **`pptx/scripts/thumbnail.py` là bản dựng lại, không phải bản gốc.** Bản ghi skill
+  trên Hyperagent thiếu file này, dù `SKILL.md` và `references/editing.md` đều gọi
+  `python scripts/thumbnail.py` ở **bước 1 của quy trình sửa pptx**. Đã fetch lại hai
+  lần với `force` để xác nhận không phải lỗi tải: nguồn chỉ có 42 file và không có nó.
+  Bản dựng lại làm đúng như tài liệu mô tả — render slide thành lưới ảnh `thumbnails.jpg`
+  có đánh số — bằng LibreOffice (pptx → pdf) + poppler + Pillow. Nó cũng nhận thẳng
+  `.pdf` nếu bạn đã tự chuyển. Vì là bản viết lại, hành vi có thể khác bản gốc của
+  Anthropic ở chi tiết.
 - `scripts/office/` **cố tình không phải Python package** (không có `__init__.py`).
   Các file trong đó import kiểu `from helpers.merge_runs import ...`, nên chỉ chạy đúng
   khi gọi trực tiếp `python scripts/office/unpack.py`. Đừng cố `import office.unpack` —
