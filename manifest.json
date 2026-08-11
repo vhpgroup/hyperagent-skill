@@ -146,7 +146,8 @@
           "markitdown"
         ],
         "node_packages": [
-          "pptxgenjs"
+          "pptxgenjs",
+          "html2pptxgenjs"
         ],
         "system_binaries": [],
         "system_binaries_optional": [
@@ -185,7 +186,7 @@
         ]
       },
       "needs_vision_model": false,
-      "notes": "Thay nhóm RESEARCH của Hyperagent. Exa Answer/Research/Websets không phải endpoint riêng — chúng là search + LLM tổng hợp, nên được viết thành quy trình trong SKILL.md thay vì script. Backend cắm rời qua RESEARCH_BACKEND."
+      "notes": "Thay nhóm RESEARCH của Hyperagent. Đã test với Exa key thật: /search, /answer, /findSimilar, /contents đều chạy. CHƯA có Exa Websets và Agent API (deep research) — cả hai là API async thật của Exa, dựng được nhưng cần thêm vòng poll. Backend cắm rời qua RESEARCH_BACKEND: exa | ddg | searxng."
     },
     {
       "name": "xlsx",
@@ -223,5 +224,6 @@
     "HyperApps": "Cần runtime giữ phiên agent sống + cầu RPC từ iframe về server.",
     "Thread Search": "Cần lớp lưu hội thoại của platform; ở local phải tự index transcript của harness.",
     "Tables / Documents": "Chưa làm — cần một lớp lưu trữ (SQLite + thư mục markdown là đủ)."
-  }
+  },
+  "upstream_note": "Nhóm skill tài liệu (pdf/docx/xlsx/pptx) là snapshot CŨ của github.com/anthropics/skills. Upstream đã refactor: không còn office/pack.py và office/unpack.py, helpers/ có thêm pptx_chart.py, pptx_slide.py, pptx_theme.py, và helpers/__init__.py export hằng số dùng chung (ở đây là file rỗng, đúng với kiến trúc cũ). Không copy lẻ file từ upstream về được — thumbnail.py gốc import office.helpers.SLIDE_REL_TYPE, không tồn tại ở kiến trúc này. Upstream còn 13 skill khác dùng được miễn phí: brand-guidelines, canvas-design, frontend-design, mcp-builder, skill-creator, theme-factory, web-artifacts-builder, webapp-testing, doc-coauthoring, internal-comms, algorithmic-art, slack-gif-creator, claude-api."
 }

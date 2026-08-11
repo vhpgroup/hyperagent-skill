@@ -21,14 +21,36 @@ Hyperagent.
 | `browser` | 12 browser tool (Stagehand) | Playwright cục bộ, không cần key |
 | `interactive` | Webpages, Slides | HTML + server xem trước cục bộ |
 
-Một nhận xét đáng lưu ý: **6 tool trong nhóm RESEARCH chỉ dựa trên 2 primitive.**
-Exa Answer, Exa Research, Exa Websets không phải endpoint riêng — chúng là
-search + LLM tổng hợp. Mà LLM thì bạn đã có. Nên chúng được viết thành *quy trình*
-trong SKILL.md, không phải script.
+**Đính chính một khẳng định trước đây trong repo này:** tôi từng viết rằng Exa
+Research và Websets "không phải endpoint riêng, chỉ là search + LLM tổng hợp".
+Điều đó SAI. Exa có API thật cho cả hai: **Websets** là API async đầy đủ
+(create-a-webset, items, searches, enrichments, monitors, webhooks), và deep
+research đi qua **Agent API** async (create-a-run, get-a-run, list-run-events).
+Chúng chưa được dựng lại ở đây — xem mục "Còn thiếu".
 
-**Không dựng lại được:** HyperApps (cần runtime giữ phiên agent + cầu RPC từ
-iframe), Thread Search (cần lớp lưu hội thoại của platform). Tables và Documents
-thì chưa làm.
+### Còn thiếu so với Hyperagent
+
+| Tool | Trạng thái |
+|---|---|
+| Exa Websets | Chưa làm. Exa có API async thật, dựng được, cần thêm vòng poll. |
+| Exa Research | Chưa làm. Đi qua Agent API async của Exa. |
+| Thread Search | Phụ thuộc harness — phải biết transcript lưu ở đâu mới index được. |
+| HyperApps | Không dựng lại được: cần runtime giữ phiên agent + cầu RPC từ iframe. |
+| Tables, Documents | Chưa làm. Cần một lớp lưu trữ (SQLite + thư mục markdown là đủ). |
+
+### Lưu ý về nguồn gốc nhóm skill tài liệu
+
+Bốn skill tài liệu ở đây trích từ bản ghi của Hyperagent, và bản đó là một
+**snapshot cũ** của `github.com/anthropics/skills`. Upstream đã refactor sang
+kiến trúc khác: không còn `office/pack.py` và `office/unpack.py`, `helpers/`
+chứa thêm `pptx_chart.py`/`pptx_slide.py`/`pptx_theme.py`, và `helpers/__init__.py`
+export hằng số dùng chung (bản ở đây là file rỗng — đúng với kiến trúc cũ, vì
+các module import trực tiếp `from helpers.merge_runs import ...`).
+
+Hệ quả thực tế: **không thể copy lẻ file từ upstream về đây** — ví dụ
+`thumbnail.py` gốc import `office.helpers.SLIDE_REL_TYPE`, thứ không tồn tại
+trong kiến trúc cũ. Muốn dùng bản gốc thì phải đồng bộ cả cây, rồi test lại.
+Bản trong repo này đã được kiểm là chạy được với chính kiến trúc của nó.
 
 ---
 
@@ -250,8 +272,15 @@ Chạy thật trên Python 3.11.15, kết quả `doctor.py`: **31 đạt, 0 hỏ
 - Đối chiếu hash thư viện `office/` giữa các skill; kiểm dangling reference trong
   `SKILL.md`.
 
+- **research với Exa key thật** — cả 4 endpoint đã chạy: `/search`, `/answer`
+  (trả lời kèm 6 nguồn), `/findSimilar`, `/contents`. Tổng chi phí test ~$0.016.
+- **research fallback** — `fetch.py` bóc bằng trafilatura, `search.py --backend ddg`.
+- **browser** — Chromium thật: mở trang, click, chuyển trang, cuộn, chụp ảnh;
+  `observe` trả selector dùng được; profile giữ cookie qua các lần chạy.
+- **interactive** — sinh deck từ markdown, kiểm đủ hợp đồng điều hướng.
+
 **Vẫn chưa test:** `recalc.py`, export PDF, đọc `.doc` (đều cần LibreOffice), pandoc,
-tesseract, và đường điền PDF form cần vision.
+tesseract, đường điền PDF form cần vision, và Exa Websets / Agent API (chưa viết).
 
 ### Lỗi schema của pptxgenjs — biết trước để đỡ mất công
 
