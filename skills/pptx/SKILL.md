@@ -10,8 +10,8 @@ description: "Use this skill any time a .pptx file is involved in any way — as
 | Task | Guide |
 |------|-------|
 | Read/analyze content | `python -m markitdown presentation.pptx` |
-| Edit or create from template | Read [editing.md](editing.md) |
-| Create from scratch | Read [pptxgenjs.md](pptxgenjs.md) |
+| Edit or create from template | Read [editing.md](references/editing.md) |
+| Create from scratch | Read [pptxgenjs.md](references/pptxgenjs.md) |
 
 ---
 
@@ -32,7 +32,7 @@ python scripts/office/unpack.py presentation.pptx unpacked/
 
 ## Editing Workflow
 
-**Read [editing.md](editing.md) for full details.**
+**Read [editing.md](references/editing.md) for full details.**
 
 1. Analyze template with `thumbnail.py`
 2. Unpack → manipulate slides → edit content → clean → pack
@@ -41,7 +41,7 @@ python scripts/office/unpack.py presentation.pptx unpacked/
 
 ## Creating from Scratch
 
-**Read [pptxgenjs.md](pptxgenjs.md) for full details.**
+**Read [pptxgenjs.md](references/pptxgenjs.md) for full details.**
 
 Use when no template or reference presentation is available.
 
