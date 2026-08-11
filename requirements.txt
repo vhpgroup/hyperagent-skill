@@ -1,0 +1,24 @@
+# Python dependencies for the Hyperagent document skills bundle.
+#   pip install -r requirements.txt
+#
+# Tested on Python 3.9. No version pins: these are all stable, wide-compatibility
+# libraries, and pinning would fight your existing environment. Pin them yourself
+# if you need reproducible builds.
+
+# --- pdf ---
+pypdf                 # read/merge/split/rotate/encrypt
+pdfplumber            # text + table extraction with coordinates
+pdf2image             # render pages to images (needs poppler on PATH)
+Pillow                # image handling for the form-filling workflow
+reportlab             # create PDFs from scratch
+
+# --- docx / pptx / xlsx (shared OOXML pipeline) ---
+lxml                  # XML parsing for unpack/pack
+defusedxml            # hardened XML parsing
+
+# --- xlsx ---
+openpyxl              # read/write .xlsx
+pandas                # tabular analysis (used throughout the xlsx docs)
+
+# --- optional, only if you want OCR on scanned PDFs ---
+# pytesseract         # also requires the tesseract binary
